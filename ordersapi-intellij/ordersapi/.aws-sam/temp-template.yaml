@@ -1,0 +1,11 @@
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 30
+      MemorySize: 1088
+      Handler: com.aws.apis.ordersapi.CreateOrderLambda::createOrder
+      CodeUri: C:\dev\learning\AWS\ordersapi-intellij\ordersapi
+      Runtime: java11
+      Architectures:
+        - x86_64
