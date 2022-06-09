@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  customersapi-intellij
+
+  Sample SAM Template for customersapi-intellij
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 20
+    Runtime: java11
+    MemorySize: 512
+    Environment:
+      Variables:
+        CUSTOMERS_TABLE: !Ref CustomersTable
+
+Resources:
+  CustomersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: Number
+  CreateCustomerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: customersapi
+      Handler: com.aws.apis.customersapi.CreateCustomersLambda::createCustomer
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomersTable
+      Architectures:
+        - x86_64
+      Events:
+        CustomerEvents:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /customers
+            Method: POST
+  ReadCustomersFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: customersapi
+      Handler: com.aws.apis.customersapi.ReadCustomersLambda::readCustomers
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref CustomersTable
+      Architectures:
+        - x86_64
+      Events:
+        CustomerEvents:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /customers
+            Method: GET
+Outputs:
+  CreateCustomerAPI:
+    Description: "API Gateway endpoint url for crete customers function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/customers"
+  CreateCustomerFunction:
+    Description: "Create Customer Lambda Function ARN"
+    Value: !GetAtt CreateCustomerFunction.Arn
+  CreateCustomerFunctionIamRole:
+    Description: "Create Customer Lambda Function IAM Role ARN"
+    Value: !GetAtt CreateCustomerFunctionRole.Arn
+  ReadCustomersAPI:
+    Description: "API Gateway endpoint url for read customers function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/customers"
+  ReadCustomersFunction:
+    Description: "Read Customers Lambda Function ARN"
+    Value: !GetAtt ReadCustomersFunction.Arn
+  ReadCustomersFunctionIamRole:
+    Description: "Create Customer Lambda Function IAM Role ARN"
+    Value: !GetAtt ReadCustomersFunctionRole.Arn
